@@ -8,10 +8,12 @@
 
 (mongo/set-connection! conn)
 
+; TODO: add a "Persistable" protocol to these?
 (defrecord Type [name fields is_primitive])
 (defrecord Method [name return_type parameters statements])
 (defrecord Parameter [name type_id])
-(defrecord Statement [method args])
+(defrecord MethodReference [method_type value])
+(defrecord Statement [method_ref args])
 (defrecord Symbol [name useable_value])
 (defrecord UseableValue [value_type value])
 
@@ -51,4 +53,19 @@
 (defn insert-spiral-record [r]
   (mongo/insert! (get-collection-for-record r) r))
 
-(map insert-spiral-record primitives)
+(def inserted
+  (apply hash-map
+         (flatten
+          (map (fn [p] (list p (insert-spiral-record p))) primitives))))
+
+; Insert a really simple function
+
+(def integer-id (:_id (inserted IntegerType)))
+(def param-1 (Parameter. "first" integer-id))
+(def param-2 (Parameter. "second" integer-id))
+(def stmt (Statement.
+           (MethodReference. :literal "+")
+           [(UseableValue. :literal "1") (UseableValue. :literal "2")]))
+(def first-method (Method. "simple-method" integer-id [param-1 param-2] [stmt]))
+
+(insert-spiral-record first-method)
