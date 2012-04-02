@@ -24,12 +24,11 @@
 
 (def spiral-types (keys types-to-collections))
 
-(defn all-collections []
-  (vals types-to-collections))
+(def all-collections (vals types-to-collections))
 
 ;Clear out all of the collections
 (defn drop-all-colls []
-  (map (fn [c] (mongo/drop-coll! c)) (all-collections)))
+  (map (fn [c] (mongo/drop-coll! c)) all-collections))
 
 (drop-all-colls)
 
