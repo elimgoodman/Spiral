@@ -2,5 +2,11 @@
   (:use [spiral.core])
   (:use [clojure.test]))
 
-(deftest replace-me ;; FIXME: write
-  (is false "No tests have been written."))
+(deftest execute-stmt-simple
+  (is 7 (execute-statement stmt {})))
+
+(deftest execute-stmt-param
+  (is 9 (execute-statement other-stmt {:first 4 :second 5})))
+
+(deftest execute-stmt-nested
+  (is 21 (execute-statement nested-stmt {:second 3})))

@@ -12,18 +12,17 @@
 (defrecord Type [name fields is_primitive])
 (defrecord Field [name type])
 (defrecord Method [name return_type parameters statements])
-(defrecord Parameter [name type])
+(defrecord Parameter [symbol type])
 (defrecord MethodReference [method_type value])
 (defrecord Statement [method_ref args])
 (defrecord Symbol [name useable_value])
-(defrecord UseableValue [value_type value])
+(defrecord Literal [value])
 
 (def types-to-collections {Type :types
                            Method :methods
                            Parameter :parameters
                            Statement :statements
-                           Symbol :symbols
-                           UseableValue :useable-values})
+                           Symbol :symbols})
 
 (def spiral-types (keys types-to-collections))
 
@@ -65,33 +64,45 @@
 ; Insert a really simple function
 
 (def integer-id (:_id (inserted IntegerType)))
-(def param-1 (Parameter. "first" IntegerType))
-(def param-2 (Parameter. "second" IntegerType))
+(def param-1 (Parameter. :first IntegerType))
+(def param-2 (Parameter. :second IntegerType))
+
 (def stmt (Statement.
-           (MethodReference. :literal "+")
-           [(UseableValue. :literal "4") (UseableValue. :literal "3")]))
+           (MethodReference. :literal +)
+           [(Literal. 4) (Literal. 3)]))
+
 (def other-stmt (Statement.
-           (MethodReference. :literal "+")
-           [(UseableValue. :param param-1) (UseableValue. :param param-2)]))
+           (MethodReference. :literal +)
+           [param-1 param-2]))
+
+(def nested-stmt (Statement.
+           (MethodReference. :literal *)
+           [stmt param-2]))
 ;; (def first-method (Method. "simple-method" IntegerType [param-1 param-2] [stmt]))
 (def first-method (Method. "simple-method" IntegerType [param-1 param-2] [other-stmt]))
 
 ;; (insert-spiral-record first-method)
 
 (defn get-function-symbol [stmt]
-  (eval (read-string (-> stmt :method_ref :value))))
+  (eval (-> stmt :method_ref :value)))
 
 (defn get-val-of-param [arg vals]
-  (let [param-keyword (-> arg :value :name keyword)
+  (let [param-keyword (:symbol arg)
         val (param-keyword vals)]
     (if (nil? val)
       (throw (Throwable. (str "Missing value for " param-keyword)))
-      (read-string val))))
+      val)))
 
-(defn get-arg-value [arg vals]
-  (case (:value_type arg)
-    :param (get-val-of-param arg vals)
-    :literal (read-string (:value arg))))
+(defmulti get-arg-value (fn [arg vals] (class arg)))
+
+(defmethod get-arg-value Literal [arg vals]
+  (:value arg))
+
+(defmethod get-arg-value Parameter [arg vals]
+    (get-val-of-param arg vals))
+
+(defmethod get-arg-value Statement [arg vals]
+    (execute-statement arg vals))
 
 (defn get-arg-values [stmt vals]
   (vec (map #(get-arg-value % vals) (:args stmt))))
@@ -101,13 +112,3 @@
 
 (defn execute-method [method vals]
   (apply execute-statement (:statements method) vals))
-
-
-
-
-(def p (UseableValue. :param param-1))
-
-
-
-
-
