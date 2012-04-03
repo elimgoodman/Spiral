@@ -70,18 +70,44 @@
 (def stmt (Statement.
            (MethodReference. :literal "+")
            [(UseableValue. :literal "4") (UseableValue. :literal "3")]))
-(def first-method (Method. "simple-method" IntegerType [param-1 param-2] [stmt]))
+(def other-stmt (Statement.
+           (MethodReference. :literal "+")
+           [(UseableValue. :param param-1) (UseableValue. :param param-2)]))
+;; (def first-method (Method. "simple-method" IntegerType [param-1 param-2] [stmt]))
+(def first-method (Method. "simple-method" IntegerType [param-1 param-2] [other-stmt]))
 
-(insert-spiral-record first-method)
+;; (insert-spiral-record first-method)
 
 (defn get-function-symbol [stmt]
   (eval (read-string (-> stmt :method_ref :value))))
 
-(defn get-arg-values [stmt]
-  (vec (map #(read-string (:value %)) (:args stmt))))
+(defn get-val-of-param [arg vals]
+  (let [param-keyword (-> arg :value :name keyword)
+        val (param-keyword vals)]
+    (if (nil? val)
+      (throw (Throwable. (str "Missing value for " param-keyword)))
+      (read-string val))))
 
-(defn execute-statement [stmt]
-  (apply (get-function-symbol stmt) (get-arg-values stmt))) 
+(defn get-arg-value [arg vals]
+  (case (:value_type arg)
+    :param (get-val-of-param arg vals)
+    :literal (read-string (:value arg))))
 
-(defn execute-method [method]
-  (apply execute-statement (:statements method)))
+(defn get-arg-values [stmt vals]
+  (vec (map #(get-arg-value % vals) (:args stmt))))
+
+(defn execute-statement [stmt vals]
+  (apply (get-function-symbol stmt) (get-arg-values stmt vals))) 
+
+(defn execute-method [method vals]
+  (apply execute-statement (:statements method) vals))
+
+
+
+
+(def p (UseableValue. :param param-1))
+
+
+
+
+
