@@ -10,8 +10,9 @@
 
 ; TODO: add a "Persistable" protocol to these?
 (defrecord Type [name fields is_primitive])
+(defrecord Field [name type])
 (defrecord Method [name return_type parameters statements])
-(defrecord Parameter [name type_id])
+(defrecord Parameter [name type])
 (defrecord MethodReference [method_type value])
 (defrecord Statement [method_ref args])
 (defrecord Symbol [name useable_value])
@@ -42,10 +43,13 @@
 (def ArrayType (Type. "Array" [] true))
 (def MapType (Type. "Map" [] true))
 
+(def NameType (Type. "Name" [(Field. "first" StringType) (Field. "last" StringType)] false))
+
 (def primitives [IntegerType StringType ArrayType MapType])
 
 (defn get-type-for-record [r]
   (first (filter (fn [t] (instance? t r)) spiral-types)))
+  ;(types-to-collections (class r))) //FIXME: why doesn't this work?
 
 (defn get-collection-for-record [r]
   (types-to-collections (get-type-for-record r)))
@@ -61,11 +65,23 @@
 ; Insert a really simple function
 
 (def integer-id (:_id (inserted IntegerType)))
-(def param-1 (Parameter. "first" integer-id))
-(def param-2 (Parameter. "second" integer-id))
+(def param-1 (Parameter. "first" IntegerType))
+(def param-2 (Parameter. "second" IntegerType))
 (def stmt (Statement.
            (MethodReference. :literal "+")
-           [(UseableValue. :literal "1") (UseableValue. :literal "2")]))
-(def first-method (Method. "simple-method" integer-id [param-1 param-2] [stmt]))
+           [(UseableValue. :literal "4") (UseableValue. :literal "3")]))
+(def first-method (Method. "simple-method" IntegerType [param-1 param-2] [stmt]))
 
 (insert-spiral-record first-method)
+
+(defn get-function-symbol [stmt]
+  (eval (read-string (-> stmt :method_ref :value))))
+
+(defn get-arg-values [stmt]
+  (vec (map #(read-string (:value %)) (:args stmt))))
+
+(defn execute-statement [stmt]
+  (apply (get-function-symbol stmt) (get-arg-values stmt))) 
+
+(defn execute-method [method]
+  (apply execute-statement (:statements method)))
