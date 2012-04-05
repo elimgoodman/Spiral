@@ -1,5 +1,6 @@
 (ns spiral.test.core
   (:use [spiral.core])
+  (:use [spiral.test.data])
   (:use [clojure.test]))
 
 (deftest execute-stmt-simple
