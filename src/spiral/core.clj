@@ -3,7 +3,7 @@
   (:import [spiral.records Literal Parameter Statement]))
 
 (defn get-function-symbol [stmt]
-  (eval (-> stmt :method_ref :value)))
+  (-> stmt :method_ref :value read-string eval))
 
 (defn get-val-of-param [arg vals]
   (let [param-keyword (:symbol arg)

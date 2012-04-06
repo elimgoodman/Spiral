@@ -11,7 +11,7 @@
   (store-method [this method]
     (dosync (alter (:methods this) conj method)))
   (store-type [this type]
-    (dosync (alter (:types this) conj types)))
+    (dosync (alter (:types this) conj type)))
   (get-all-types [this]
     (deref (:types this)))
   (get-all-methods [this]
