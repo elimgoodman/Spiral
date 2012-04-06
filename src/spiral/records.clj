@@ -1,4 +1,5 @@
-(ns spiral.records)
+(ns spiral.records
+  (:use defrecord2.defrecord2-core))
 
 ; TODO: add a "Persistable" protocol to these?
 (defrecord Type [name fields is_primitive])
