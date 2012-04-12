@@ -10,8 +10,8 @@
 
 (def lib (librarian/in-memory-librarian))
 
+(doseq [p r/primitives] (librarian/store-type lib p))
 (librarian/store-method lib d/first-method)
-(librarian/store-type lib r/IntegerType)
 
 (defn serialize [obj]
   (json-str obj))
