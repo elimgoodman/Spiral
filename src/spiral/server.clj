@@ -1,6 +1,7 @@
 (ns spiral.server
   (:use compojure.core)
   (:use clojure.data.json)
+  (:use ring.middleware.json-params)
   (:require [compojure.route :as route]
             [compojure.handler :as handler]
             [spiral.librarian :as librarian]
@@ -24,9 +25,11 @@
 (defroutes main-routes
   (GET "/methods" [] (json-resp (serialize (librarian/get-all-methods lib))))
   (GET "/types" [] (json-resp (serialize (librarian/get-all-types lib))))
+  (POST "/type" [foo] (str foo))
   (GET "/" [] (v/index-page))
   (route/resources "/")
   (route/not-found "Page not found"))
  
 (def app
-  (handler/site main-routes))
+  (-> main-routes handler/site wrap-json-params))
+  
