@@ -22,10 +22,19 @@
    :headers {"Content-Type" "text/json"}
    :body body})
 
+(defn fields-from-type-map [type-map]
+  "blerg")
+
+(defn insert-type-from-map [type-map]
+  (let [type-map (assoc type-map :fields (fields-from-type-map type-map))
+        type-rec (merge (r/->Type nil nil false) type-map)]
+    (println type-rec)))
+        
 (defroutes main-routes
   (GET "/methods" [] (json-resp (serialize (librarian/get-all-methods lib))))
   (GET "/types" [] (json-resp (serialize (librarian/get-all-types lib))))
-  (POST "/type" [foo] (str foo))
+  (POST "/type" request (let [j (:json-params request)]
+                          (insert-type-from-map j)))
   (GET "/" [] (v/index-page))
   (route/resources "/")
   (route/not-found "Page not found"))

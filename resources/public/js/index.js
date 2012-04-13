@@ -56,13 +56,20 @@
         saveType: function(e) {
             var serialized = this.serialize();
             var type = new Type(serialized);
-            type.save();
+            type.save(serialized, {
+                success: function() {
+                    console.log(type);
+                }
+            });
 
             e.preventDefault();
         },
         serialize: function() {
             return {
-                foo: "bar"
+                foo: [
+                    {a: "hello"},
+                    {c: 2}
+                ]
             };
         }
     });
