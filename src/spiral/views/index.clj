@@ -1,4 +1,4 @@
-(ns spiral.views
+(ns spiral.views.index
   (:use [hiccup core page-helpers]))
 
 (defn js-var [name]

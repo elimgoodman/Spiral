@@ -7,7 +7,7 @@
             [spiral.librarian :as librarian]
             [spiral.test.data :as d]
             [spiral.records :as r]
-            [spiral.views :as v]))
+            [spiral.views.poc :as v]))
 
 (def lib (librarian/in-memory-librarian))
 
@@ -29,13 +29,24 @@
   (let [type-map (assoc type-map :fields (fields-from-type-map type-map))
         type-rec (merge (r/->Type nil nil false) type-map)]
     (println type-rec)))
-        
+
+;;;;;POC STUFF;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defrecord Model [name])
+(defn all-models []
+  [
+   (Model. "User") 
+   (Model. "Post")
+   (Model. "PostAttachment")])
+
 (defroutes main-routes
   (GET "/methods" [] (json-resp (serialize (librarian/get-all-methods lib))))
   (GET "/types" [] (json-resp (serialize (librarian/get-all-types lib))))
   (POST "/type" request (let [j (:json-params request)]
                           (insert-type-from-map j)))
+  ;;Stuff for poc
   (GET "/" [] (v/index-page))
+  (GET "/models" [] (json-resp (serialize (all-models))))
   (route/resources "/")
   (route/not-found "Page not found"))
  
